@@ -1295,7 +1295,19 @@ async getOrCreateDocumentType(name, options = {}) {
 
       if (currentDoc.correspondent && updates.correspondent) {
         console.log('[DEBUG] Document already has a correspondent, keeping existing one:', currentDoc.correspondent);
-        delete updates.correspondent;
+        updates.correspondent = currentDoc.correspondent;
+      }
+
+      // Preserve correspondent from existing document if not in update payload.
+      if (!updates.correspondent && currentDoc.correspondent) {
+        console.log('[DEBUG] Preserving existing correspondent in update payload:', currentDoc.correspondent);
+        updates.correspondent = currentDoc.correspondent;
+      }
+
+      // Preserve storage_path from existing document if not in update payload.
+      if (!updates.storage_path && currentDoc.storage_path) {
+        console.log('[DEBUG] Preserving existing storage_path in update payload:', currentDoc.storage_path);
+        updates.storage_path = currentDoc.storage_path;
       }
 
       let updateData;
