@@ -1117,22 +1117,33 @@ async searchForExistingDocumentType(documentType) {
   }
 }
 
-async getOrCreateDocumentType(name) {
+async getOrCreateDocumentType(name, options = {}) {
   this.initialize();
-  
+
+  const restrictToExistingDocumentTypes = options.restrictToExistingDocumentTypes === true ||
+                                         (options.restrictToExistingDocumentTypes === undefined &&
+                                          process.env.RESTRICT_TO_EXISTING_DOCUMENT_TYPES === 'yes');
+
+  console.log(`[DEBUG] Processing document type with restrictToExistingDocumentTypes=${restrictToExistingDocumentTypes}`);
+
   try {
       // Suche nach existierendem document_type
       const existingDocType = await this.searchForExistingDocumentType(name);
       console.log("[DEBUG] Response Document Type Search: ", existingDocType);
-  
+
       if (existingDocType) {
           console.log(`[DEBUG] Found existing document type "${name}" with ID ${existingDocType.id}`);
           return existingDocType;
       }
-  
+
+      if (restrictToExistingDocumentTypes) {
+          console.log(`[DEBUG] Document type "${name}" does not exist and restrictions are enabled, skipping`);
+          return null;
+      }
+
       // Erstelle neuen document_type
       try {
-          const createResponse = await this.client.post('/document_types/', { 
+          const createResponse = await this.client.post('/document_types/', {
               name: name,
               matching_algorithm: 1, // 1 = ANY
               match: "",  // Optional: Kann später angepasst werden
@@ -1141,18 +1152,18 @@ async getOrCreateDocumentType(name) {
           console.log(`[DEBUG] Created new document type "${name}" with ID ${createResponse.data.id}`);
           return createResponse.data;
       } catch (createError) {
-          if (createError.response?.status === 400 && 
+          if (createError.response?.status === 400 &&
               createError.response?.data?.error?.includes('unique constraint')) {
-            
+
               // Race condition check
               const retryResponse = await this.client.get('/document_types/', {
                   params: { name: name }
               });
-            
+
               const justCreatedDocType = retryResponse.data.results.find(
                   dt => dt.name.toLowerCase() === name.toLowerCase()
               );
-            
+
               if (justCreatedDocType) {
                   console.log(`[DEBUG] Retrieved document type "${name}" after constraint error with ID ${justCreatedDocType.id}`);
                   return justCreatedDocType;
