@@ -368,6 +368,18 @@ async function scanInitial() {
     // Extract tag names from tag objects
     const existingTagNames = existingTags.map(tag => tag.name);
 
+    // Reconcile: remove stale entries for documents deleted in Paperless-ngx
+    const validIdSet = new Set(documents.map(d => d.id));
+    const processedDocs = await documentModel.getProcessedDocuments();
+    const staleIds = processedDocs
+        .map(d => d.document_id)
+        .filter(id => !validIdSet.has(id));
+
+    if (staleIds.length > 0) {
+      await documentModel.deleteDocumentsIdList(staleIds);
+      console.log(`[DEBUG] Reconciled: removed ${staleIds.length} stale entries from AI database`);
+    }
+
     for (const doc of documents) {
       try {
         const result = await processDocument(doc, existingTagNames, existingCorrespondentList, existingDocumentTypesList, ownUserId);
@@ -409,6 +421,18 @@ async function scanDocuments() {
     
     // Extract tag names from tag objects
     const existingTagNames = existingTags.map(tag => tag.name);
+
+    // Reconcile: remove stale entries for documents deleted in Paperless-ngx
+    const validIdSet = new Set(documents.map(d => d.id));
+    const processedDocs = await documentModel.getProcessedDocuments();
+    const staleIds = processedDocs
+        .map(d => d.document_id)
+        .filter(id => !validIdSet.has(id));
+
+    if (staleIds.length > 0) {
+      await documentModel.deleteDocumentsIdList(staleIds);
+      console.log(`[DEBUG] Reconciled: removed ${staleIds.length} stale entries from AI database`);
+    }
 
     for (const doc of documents) {
       try {
