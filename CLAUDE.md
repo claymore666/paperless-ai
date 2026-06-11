@@ -52,15 +52,16 @@ ssh claude@192.168.0.141 'sudo docker cp /tmp/server.js paperless-qa-ai:/app/ser
 
 | Branch | Purpose | Tracks |
 |--------|---------|--------|
-| `main` | Upstream mirror | `origin/main` (clusterzx/paperless-ai) |
-| `prod` | All our fixes merged, used for production deployment | main + all fix branches |
-| `fix/*` | Individual fix branches for upstream PRs | branched from main |
+| `main` (fork) | **Single source of truth and deployment branch.** Upstream v3.0.9 + all our fixes + cherry-picked community PRs | tagged releases, e.g. `v3.0.9-fixes` |
+| `fix/*` | Short-lived fix branches | branched from fork main, deleted after merge |
 
-**Upstream appears abandoned** (last commit Nov 2025, last PR merge Jul 2025, 20+ open PRs unreviewed). We keep PRs open upstream but deploy from our `prod` branch.
+**Upstream is officially unmaintained** (README notice since Apr 2026; our PRs #920–#924 were auto-closed by the stale-bot). The old `prod` branch and all merged `fix/*` branches were merged into fork `main` and deleted (June 2026). Releases are tagged on fork main: [`v3.0.9-fixes`](https://github.com/claymore666/paperless-ai/releases/tag/v3.0.9-fixes).
+
+Remaining unmerged branches on the fork are **stale clusterzx work kept for reference only** — do not merge: `deepseek-r1` (superseded by v3.0.9 reasoning support), `ocr-server-feature` (abandoned WIP), `dev-rag` (old RAG state), `fix-custom-service` (version-bump only).
 
 ## Workflow: New Fix
 
-1. Branch from main: `git checkout main && git checkout -b fix/<name>`
+1. Branch from fork main: `git checkout main && git checkout -b fix/<name>`
 2. Make changes, test on QA
 3. Commit (no Claude attribution):
    ```bash
@@ -70,17 +71,19 @@ ssh claude@192.168.0.141 'sudo docker cp /tmp/server.js paperless-qa-ai:/app/ser
    Fixes #NNN"
    ```
 4. Push to fork: `git push fork fix/<name>`
-5. Create PR upstream: `gh pr create --repo clusterzx/paperless-ai --head claymore666:fix/<name> --base main`
-6. Merge into prod: `git checkout prod && git merge fix/<name> && git push fork prod`
+5. Merge into fork main: `git checkout main && git merge fix/<name> && git push fork main`
+6. Delete the fix branch: `git push fork --delete fix/<name>`
+7. Tag a release when a deployable set of fixes has accumulated (e.g. `v3.0.9-fixes2`), update the README fork-status section
+8. (Optional) PR upstream — note the stale-bot auto-closes PRs after inactivity, so don't expect merges
 
 **Important**: Always show PR/comment text to user for approval before posting.
 
-## Workflow: Update prod from upstream
+## Workflow: Sync from upstream (if it ever revives)
 
 ```bash
-git checkout main && git pull origin main
-git checkout prod && git merge main
-git push fork prod
+git fetch origin
+git checkout main && git merge origin/main
+git push fork main
 ```
 
 ## Git Config
@@ -92,16 +95,17 @@ user.email = christian.kamien@gmail.com
 
 `gh` authenticated as `claymore666` on pve1. Fork remote: `fork` → `claymore666/paperless-ai`.
 
-## Active Branches
+## Merged Fixes (all in fork main since June 2026)
 
-| Branch | Issue | Status |
-|--------|-------|--------|
-| `prod` | — | All fixes merged, deploy from here |
-| `fix/restrict-document-types` | #834 | PR #920 submitted |
-| `fix/reconcile-stale-documents` | #471 | PR #921 submitted |
-| `fix/num-ctx-calculation` | #913, #745 | PR #922 submitted |
-| `fix/double-api-path` | #880 | PR #923 submitted |
-| `fix/custom-service-max-tokens` | #802 | PR #924 submitted |
+| Fix | Issue | Upstream PR (closed unmerged) |
+|-----|-------|-------------------------------|
+| Enforce `RESTRICT_TO_EXISTING_DOCUMENT_TYPES` | #834 | #920 |
+| Reconcile stale documents from AI database | #471 | #921 |
+| Conservative token estimation for `num_ctx` | #913, #745 | #922 |
+| Normalize API URL (double `/api/` paths) | #880 | #923 |
+| `config.responseTokens` in customService | #802 | #924 |
+| Repair JSON parsing in manual service | — | — |
+| Cherry-picked community PRs | — | #893, #900, #902–#907, #915 |
 
 ## Key Source Files
 
