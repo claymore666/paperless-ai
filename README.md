@@ -7,6 +7,27 @@
 
 ---
 
+## 🔀 About this fork
+
+This is a maintained fork of [clusterzx/paperless-ai](https://github.com/clusterzx/paperless-ai), which is currently unmaintained. `main` is **upstream v3.0.9 plus the following fixes**:
+
+### Our bugfixes (submitted upstream, closed unmerged by stale-bot)
+
+| Fix | Upstream issue | Upstream PR |
+|-----|----------------|-------------|
+| Enforce `RESTRICT_TO_EXISTING_DOCUMENT_TYPES` in `getOrCreateDocumentType` | [#834](https://github.com/clusterzx/paperless-ai/issues/834) | [#920](https://github.com/clusterzx/paperless-ai/pull/920) |
+| Reconcile stale documents from AI database on each scan cycle | [#471](https://github.com/clusterzx/paperless-ai/issues/471) | [#921](https://github.com/clusterzx/paperless-ai/pull/921) |
+| Conservative token estimation and `config.responseTokens` for `num_ctx` | [#913](https://github.com/clusterzx/paperless-ai/issues/913), [#745](https://github.com/clusterzx/paperless-ai/issues/745) | [#922](https://github.com/clusterzx/paperless-ai/pull/922) |
+| Normalize API URL to prevent double `/api/` paths | [#880](https://github.com/clusterzx/paperless-ai/issues/880) | [#923](https://github.com/clusterzx/paperless-ai/pull/923) |
+| Replace hardcoded `max_tokens` with `config.responseTokens` in customService | [#802](https://github.com/clusterzx/paperless-ai/issues/802) | [#924](https://github.com/clusterzx/paperless-ai/pull/924) |
+| Repair JSON parsing in manual service | — | — |
+
+### Cherry-picked community PRs that upstream never merged
+
+[#893](https://github.com/clusterzx/paperless-ai/pull/893), [#900](https://github.com/clusterzx/paperless-ai/pull/900), [#902](https://github.com/clusterzx/paperless-ai/pull/902), [#903](https://github.com/clusterzx/paperless-ai/pull/903), [#904](https://github.com/clusterzx/paperless-ai/pull/904), [#905](https://github.com/clusterzx/paperless-ai/pull/905) (custom field truncation + preserve correspondent/storage_path), [#906](https://github.com/clusterzx/paperless-ai/pull/906), [#907](https://github.com/clusterzx/paperless-ai/pull/907), [#915](https://github.com/clusterzx/paperless-ai/pull/915) — plus npm dependency security updates.
+
+---
+
 **Paperless-AI** is an AI-powered extension for [Paperless-ngx](https://github.com/paperless-ngx/paperless-ngx) that brings automatic document classification, smart tagging, and semantic search using OpenAI-compatible APIs and Ollama.
 
 It enables **fully automated document workflows**, **contextual chat**, and **powerful customization** — all via an intuitive web interface.
