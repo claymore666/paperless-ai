@@ -393,7 +393,7 @@ class CustomOpenAIService {
           }
         ],
         temperature: 0.7,
-        max_tokens: 128000
+        max_tokens: Number(config.responseTokens)
       });
 
       if (!response?.choices?.[0]?.message?.content) {
