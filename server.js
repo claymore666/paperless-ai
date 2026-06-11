@@ -281,16 +281,25 @@ async function buildUpdateData(analysis, doc) {
     for (const key in customFields) {
       const customField = customFields[key];
       
-      if (!customField.field_name || !customField.value?.trim()) {
+      const valueStr = String(customField.value ?? '').trim();
+      if (!customField.field_name || !valueStr) {
         console.log(`[DEBUG] Skipping empty/invalid custom field`);
         continue;
       }
 
       const fieldDetails = await paperlessService.findExistingCustomField(customField.field_name);
       if (fieldDetails?.id) {
+        let fieldValue = valueStr;
+
+        // Paperless-ngx enforces a 128-character limit on STRING custom fields.
+        if (fieldDetails.data_type === 'string' && fieldValue.length > 128) {
+          console.warn(`[WARN] Custom field "${customField.field_name}" value truncated from ${fieldValue.length} to 128 characters`);
+          fieldValue = fieldValue.substring(0, 125) + '...';
+        }
+
         processedFields.push({
           field: fieldDetails.id,
-          value: customField.value.trim()
+          value: fieldValue
         });
         processedFieldIds.add(fieldDetails.id);
       }
@@ -584,6 +593,7 @@ async function startScanning() {
     const isConfigured = await setupService.isConfigured();
     if (!isConfigured) {
       console.log(`Setup not completed. Visit http://your-machine-ip:${process.env.PAPERLESS_AI_PORT || 3000}/setup to complete setup.`);
+      return;
     }
 
     const userId = await paperlessService.getOwnUserID();
